@@ -20,7 +20,7 @@ const config = {
     connectionString
 };
 
-app.get('/data', async (req, res) => {
+app.get('/items', async (req, res) => {
     const client = new pg.Client(config);
     client.connect(function (err) {
         if (err)
