@@ -20,6 +20,10 @@ const config = {
     connectionString
 };
 
+app.get('/', (req, res) => {
+    res.send('Hello, Render!');
+});
+
 app.get('/items', async (req, res) => {
     const client = new pg.Client(config);
     client.connect(function (err) {
