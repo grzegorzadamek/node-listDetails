@@ -136,7 +136,7 @@ app.get('/item/:itemId', async (req, res) => {
               throw err;
           client.query("DELETE FROM logins WHERE id = $1", [itemId], function (err, result) {
 
-              res.status(200).json("Remove item successfully");
+              res.status(200).json("Remove item successfully!");
               client.end(function (err) {
                   if (err)
                       throw err;
