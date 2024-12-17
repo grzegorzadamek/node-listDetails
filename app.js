@@ -29,7 +29,8 @@ app.get('/items', async (req, res) => {
     client.connect(function (err) {
         if (err)
             throw err;
-        client.query("SELECT * FROM logins ORDER BY id ASC", [], function (err, result) {
+        client.query("SELECT * FROM logins WHERE first_name ILIKE $1 OR last_name ILIKE $1 ORDER BY id ASC",
+                       ['%' + (req.query.query || '') + '%'], function (err, result) {
             if (err)
                 throw err;
 
