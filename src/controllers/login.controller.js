@@ -55,7 +55,7 @@ class LoginController {
         try {
             const { firstName, lastName, email } = req.body;
 
-            if (!firstName || !lastName || !email) {
+            if (!firstName || !lastName) {
                 return res.status(400).json({ error: 'Missing required fields' });
             }
 
