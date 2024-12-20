@@ -1,20 +1,20 @@
 const express = require('express');
 const loginRoutes = require('./routes/login.routes.js');
 const middleware = require('./middleware');
+const config = require('./config/config');
+const logger = require('./utils/logger');
 
 const app = express();
 
-// Apply basic middleware
 middleware.basic.forEach(mw => app.use(mw));
-
-// Routes
 app.use('/api', loginRoutes);
-
-// Error handling middleware
 app.use(middleware.errorHandler);
 app.use(middleware.notFound);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(config.port, () => {
+        logger.info(`Server running on port ${config.port}`);
+    });
+}
 
 module.exports = app;
