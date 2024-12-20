@@ -4,20 +4,25 @@ class LoginController {
     static async getAllItems(req, res) {
         try {
             const query = '%' + (req.query.query || '') + '%';
-            const { rows } = await pool.query(
+            const result = await pool.query(
                 "SELECT * FROM logins WHERE first_name ILIKE $1 OR last_name ILIKE $1 ORDER BY id ASC",
                 [query]
             );
 
-            const response = rows.map(({first_name: firstName, last_name: lastName, ...rest}) => ({
+            const response = result.rows.map(({
+                first_name: firstName,
+                last_name: lastName,
+                ...rest
+            }) => ({
                 firstName,
                 lastName,
                 ...rest
             }));
 
-            res.json(response);
+            return res.json(response);
         } catch (error) {
-            res.status(500).json({ error: 'Error fetching items' });
+            console.error('Error in getAllItems:', error);
+            return res.status(500).json({ message: error.message });
         }
     }
 
@@ -43,7 +48,7 @@ class LoginController {
     static async addItem(req, res) {
         const { firstName, lastName, email } = req.body;
 
-        if (!firstName || !lastName || !email) {
+        if (!firstName || !lastName) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -99,5 +104,4 @@ class LoginController {
         }
     }
 }
-
 module.exports = LoginController;
