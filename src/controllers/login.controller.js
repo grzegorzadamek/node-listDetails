@@ -9,20 +9,15 @@ class LoginController {
                 [query]
             );
 
-            const response = rows.map(({
-                first_name: firstName,
-                last_name: lastName,
-                ...rest
-            }) => ({
+            const response = rows.map(({first_name: firstName, last_name: lastName, ...rest}) => ({
                 firstName,
                 lastName,
                 ...rest
             }));
 
-            return res.json(response);
+            res.json(response);
         } catch (error) {
-            console.error('Error in getAllItems:', error);
-            return res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ error: 'Error fetching items' });
         }
     }
 
@@ -34,64 +29,55 @@ class LoginController {
                 [itemId]
             );
 
-            if (rows.length === 0) {
+            if (!rows.length) {
                 return res.status(404).json({ error: 'Item not found' });
             }
 
-            const response = {
-                firstName: rows[0].first_name,
-                lastName: rows[0].last_name,
-                ...rows[0]
-            };
-
-            return res.json(response);
+            const {first_name: firstName, last_name: lastName, ...rest} = rows[0];
+            res.json({ firstName, lastName, ...rest });
         } catch (error) {
-            console.error('Error in getItem:', error);
-            return res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ error: 'Error fetching item' });
         }
     }
 
     static async addItem(req, res) {
+        const { firstName, lastName, email } = req.body;
+
+        if (!firstName || !lastName || !email) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
         try {
-            const { firstName, lastName, email } = req.body;
-
-            if (!firstName || !lastName) {
-                return res.status(400).json({ error: 'Missing required fields' });
-            }
-
             await pool.query(
                 "INSERT INTO logins (first_name, last_name, email) VALUES ($1, $2, $3)",
                 [firstName, lastName, email]
             );
-
-            return res.status(201).json({ message: "Item added successfully" });
+            res.status(201).json({ message: "Item added successfully" });
         } catch (error) {
-            console.error('Error in addItem:', error);
-            return res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ error: 'Error adding item' });
         }
     }
 
     static async updateItem(req, res) {
+        const { id, firstName, lastName, email } = req.body;
+
+        if (!id || !firstName || !lastName || !email) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
         try {
-            const { id, firstName, lastName, email } = req.body;
-
-            if (!id || !firstName || !lastName || !email) {
-                return res.status(400).json({ error: 'Missing required fields' });
-            }
-
             const { rowCount } = await pool.query(
                 "UPDATE logins SET first_name = $1, last_name = $2, email = $3 WHERE id = $4",
                 [firstName, lastName, email, id]
             );
 
-            if (rowCount === 0) {
+            if (!rowCount) {
                 return res.status(404).json({ error: 'Item not found' });
             }
 
-            return res.json({ message: "Item updated successfully" });
+            res.json({ message: "Item updated successfully" });
         } catch (error) {
-            console.error('Error in updateItem:', error);
-            return res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ error: 'Error updating item' });
         }
     }
 
@@ -103,14 +89,13 @@ class LoginController {
                 [itemId]
             );
 
-            if (rowCount === 0) {
+            if (!rowCount) {
                 return res.status(404).json({ error: 'Item not found' });
             }
 
-            return res.json({ message: "Item removed successfully" });
+            res.json({ message: "Item removed successfully" });
         } catch (error) {
-            console.error('Error in deleteItem:', error);
-            return res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ error: 'Error deleting item' });
         }
     }
 }
