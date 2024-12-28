@@ -4,18 +4,19 @@ class LoginController {
     static async getAllItems(req, res) {
         try {
             const query = '%' + (req.query.query || '') + '%';
+            const { owner } = req.body;
             const result = await pool.query(
-                "SELECT * FROM logins WHERE first_name ILIKE $1 OR last_name ILIKE $1 ORDER BY id ASC",
-                [query]
+                "SELECT * FROM items WHERE owner = $1 AND (name ILIKE $2 OR description ILIKE $2) ORDER BY id ASC",
+                [owner, query]
             );
 
             const response = result.rows.map(({
-                first_name: firstName,
-                last_name: lastName,
+                name,
+                description,
                 ...rest
             }) => ({
-                firstName,
-                lastName,
+                name,
+                description,
                 ...rest
             }));
 
@@ -29,33 +30,34 @@ class LoginController {
     static async getItem(req, res) {
         try {
             const { itemId } = req.params;
+            const { owner } = req.body;
+
             const { rows } = await pool.query(
-                "SELECT * FROM logins WHERE id = $1",
-                [itemId]
+                "SELECT * FROM items WHERE id = $1 AND owner = $2",
+                [itemId, owner]
             );
 
             if (!rows.length) {
                 return res.status(404).json({ error: 'Item not found' });
             }
 
-            const {first_name: firstName, last_name: lastName, ...rest} = rows[0];
-            res.json({ firstName, lastName, ...rest });
+            const {name: name, description: description, ...rest} = rows[0];
+            res.json({ name, description, ...rest });
         } catch (error) {
             res.status(500).json({ error: 'Error fetching item' });
         }
     }
 
     static async addItem(req, res) {
-        const { firstName, lastName, email } = req.body;
-
-        if (!firstName || !lastName) {
+        const { name, description, owner } = req.body;
+        if (!name || !description) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
         try {
             await pool.query(
-                "INSERT INTO logins (first_name, last_name, email) VALUES ($1, $2, $3)",
-                [firstName, lastName, email]
+                "INSERT INTO items (name, description, owner) VALUES ($1, $2, $3)",
+                [name, description, owner]
             );
             res.status(201).json({ message: "Item added successfully" });
         } catch (error) {
@@ -64,16 +66,16 @@ class LoginController {
     }
 
     static async updateItem(req, res) {
-        const { id, firstName, lastName, email } = req.body;
+        const { id, name, description } = req.body;
 
-        if (!id || !firstName || !lastName || !email) {
+        if (!id || !name || !description) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
         try {
             const { rowCount } = await pool.query(
-                "UPDATE logins SET first_name = $1, last_name = $2, email = $3 WHERE id = $4",
-                [firstName, lastName, email, id]
+                "UPDATE items SET name = $1, description = $2 WHERE id = $3",
+                [name, description, id]
             );
 
             if (!rowCount) {
@@ -90,7 +92,7 @@ class LoginController {
         try {
             const { itemId } = req.params;
             const { rowCount } = await pool.query(
-                "DELETE FROM logins WHERE id = $1",
+                "DELETE FROM items WHERE id = $1",
                 [itemId]
             );
 
