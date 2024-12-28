@@ -104,22 +104,22 @@ class LoginController {
         }
     }
 
-        static async auth(req, res) {
-            try {
-                const { email } = req.body;
-                const { rows } = await pool.query(
-                    "SELECT * FROM logins WHERE email = $1",
-                    [email]
-                );
+    static async auth(req, res) {
+        try {
+            const { email } = req.body;
+            const { rows } = await pool.query(
+               "SELECT * FROM logins WHERE email = $1",
+                [email]
+            );
 
-                if (!rows.length) {
-                    return res.json(false);
-                }
-
-                return res.json(true);
-            } catch (error) {
-                res.status(500).json({ error: 'Error fetching user' });
+            if (!rows.length) {
+                return res.json(false);
             }
+
+            return res.json(true);
+        } catch (error) {
+            res.status(500).json({ error: 'Error fetching user' });
         }
+    }
 }
 module.exports = LoginController;
